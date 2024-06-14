@@ -14,7 +14,7 @@ steps:
     args:
     - 'run'
     - 'deploy'
-    - 'API-model'
+    - 'api-model'
     - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/konira-artifact/model-image:$COMMIT_SHA'
     - '--region=us-central1'
     - '--cpu=1'
