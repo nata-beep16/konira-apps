@@ -107,7 +107,7 @@ def predict_konira_classification(data):
         #    else:
         #         predicted_class = 'Grade tidak tersedia' #====ubah====
             image_name = image_path.split('/')[-1]
-            blob = bucket.blob('marine-images/' + image_name)
+            blob = bucket.blob('images/' + image_name)
             blob.upload_from_filename(image_path) 
             os.remove(image_path)
             return jsonify({
