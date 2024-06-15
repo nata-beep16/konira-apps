@@ -20,7 +20,6 @@ steps:
     - '--cpu=1'
     - '--memory=2048Mi'
     - '--allow-unauthenticated'
-    - '--set-secrets=BUCKET_NAME=bucket_name:latest'
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/konira-artifact/model-image:$COMMIT_SHA'
 logsBucket: 'gs://konira-bucket/logs'

@@ -5,5 +5,6 @@ WORKDIR $APP_HOME
 COPY . ./
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+ENV BUCKET_NAME=konira-bucket
 EXPOSE 8080
 CMD ["python", "main.py"]

@@ -15,10 +15,6 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image as tf_image
 from zipfile import ZipFile 
 
-gdown.download('https://drive.google.com/uc?id=1LSjqv4GteWiC7dSTY_2e1TggvglgeXR4')
-with ZipFile('./models.zip', 'r') as modelFolder: 
-    modelFolder.extractall()
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -34,33 +30,10 @@ bucket_name = os.environ.get('BUCKET_NAME', 'konira-bucket')
 client = storage.Client.from_service_account_json(json_credentials_path=app.config['GOOGLE_APPLICATION_CREDENTIALS'])
 bucket = storage.Bucket(client, bucket_name)
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
-if SECRET_KEY is None:
-    print("SECRET_KEY not found in environment variables.")
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
            
-def token_required(f):
-    @wraps(f)
-    def decorator(*args, **kwargs):
-        token = request.headers.get('Authorization', None)
-        if not token:
-            return jsonify({'message': 'Invalid token'}), 401
-        try:
-            token_prefix, token_value = token.split()
-            if token_prefix.lower() != 'bearer':
-                raise ValueError('Invalid token prefix')
-            data = jwt.decode(token_value, SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return jsonify({'message': 'Token has expired'}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({'message': 'Invalid token'}), 401
-        except ValueError:
-            return jsonify({'message': 'Invalid token format'}), 401
-        return f(data, *args, **kwargs)
-    return decorator
 
 @app.route('/', methods=['GET'])
 def index():
@@ -69,15 +42,7 @@ def index():
     }), HTTPStatus.OK
 
 @app.route('/predict', methods=['POST'])
-@token_required
-def predict_konira_classification(data):
-    if data is None:
-        return jsonify({
-            'status': {
-                'code': HTTPStatus.FORBIDDEN,
-                'message': 'Access denied',
-            }
-        }), HTTPStatus.FORBIDDEN
+def predict_konira_classification():
     if request.method == 'POST':
         reqImage = request.files['image']
         if reqImage and allowed_file(reqImage.filename):
@@ -95,17 +60,6 @@ def predict_konira_classification(data):
             class_list = ['miner', 'modisease', 'phoma', 'rust']
             classification_class = class_list[np.argmax(classificationResult[0])]
 
-        #     predicted_class = None
-        #     if(classification_class == 'Ikan'):
-        #         classes = model_marine_grading_fish.predict(x, batch_size=1) 
-        #         class_list = ['A', 'B', 'C']
-        #         predicted_class = class_list[np.argmax(classes[0])]
-        #     elif(classification_class == 'Udang'):
-        #         classes = model_marine_grading_shrimp.predict(x, batch_size=1) 
-        #         class_list = ['A', 'B', 'C']
-        #         predicted_class = class_list[np.argmax(classes[0])]
-        #    else:
-        #         predicted_class = 'Grade tidak tersedia' #====ubah====
             image_name = image_path.split('/')[-1]
             blob = bucket.blob('images/' + image_name)
             blob.upload_from_filename(image_path) 
@@ -114,7 +68,7 @@ def predict_konira_classification(data):
                 'status': {
                     'code': HTTPStatus.OK,
                     'message': 'Success predicting',
-                    'data': { 'class': classification_class, 'grade': predicted_class }
+                    'data': { 'class': classification_class  }
                 }
             }), HTTPStatus.OK 
         else:
