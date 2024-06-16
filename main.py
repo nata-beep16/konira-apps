@@ -1,18 +1,14 @@
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import joblib
-import jwt
 import numpy as np
 import pandas as pd
-from functools import wraps
+import tensorflow as tf
 from http import HTTPStatus
 from PIL import Image
 from flask import Flask, jsonify, request
 from google.cloud import storage
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image as tf_image
-from zipfile import ZipFile 
 
 load_dotenv()
 
@@ -23,7 +19,7 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 app.config['MODEL_KONIRA_CLASSIFICATION'] = './models/modelLovenBaru.h5'
 app.config['GOOGLE_APPLICATION_CREDENTIALS'] = './credentials/gcs.json'
 
-model_classification = load_model(app.config['MODEL_KONIRA_CLASSIFICATION'], compile=False)
+model_classification = tf.keras.models.load_model(app.config['MODEL_KONIRA_CLASSIFICATION'], compile=False)
 
 bucket_name = os.environ.get('BUCKET_NAME', 'konira-bucket')
 client = storage.Client.from_service_account_json(json_credentials_path=app.config['GOOGLE_APPLICATION_CREDENTIALS'])
@@ -50,7 +46,7 @@ def predict_konira_classification():
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             img = Image.open(image_path).convert('RGB')
             img = img.resize((224, 224)) # image size
-            x = tf_image.img_to_array(img)
+            x = tf.keras.preprocessing.image.img_to_array(img)
             x = np.expand_dims(x, axis=0)
             x = x / 255
 
