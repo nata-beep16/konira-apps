@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 app.config['ALLOWED_EXTENSIONS'] = set(['png', 'jpg', 'jpeg'])
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
-app.config['MODEL_KONIRA_CLASSIFICATION'] = './models/modelLovenBaru.h5'
+app.config['MODEL_KONIRA_CLASSIFICATION'] = './models/model_1.h5'
 app.config['GOOGLE_APPLICATION_CREDENTIALS'] = './credentials/gcs.json'
 
 model_classification = tf.keras.models.load_model(app.config['MODEL_KONIRA_CLASSIFICATION'], compile=False)
